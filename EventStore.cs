@@ -1,18 +1,18 @@
 ﻿namespace WebApp
 {
     using Dapper;
-    using WebApp.Tools;
+    using Microsoft.EntityFrameworkCore;
+    using Newtonsoft.Json;
     using Npgsql;
     using System.Data;
-    using Newtonsoft.Json;
-    using System.Runtime.InteropServices;
+    using WebApp.Tools;
 
-    public class EventStore
+    public class EventStore : DbContext
     {
         private readonly NpgsqlConnection dbConnection;
 
-        public EventStore(NpgsqlConnection dbConnection)
-        {
+        public EventStore(DbContextOptions<EventStore> options, NpgsqlConnection dbConnection) : base(options)
+       {
             this.dbConnection = dbConnection;
         }
 
@@ -155,16 +155,16 @@
         private void CreateEventsTable()
         {
             const string createEventsTableSql =
-                @"CREATE TABLE IF NOT EXISTS events
+                @"CREATE TABLE IF NOT EXISTS Events
                     (
-                        id              UUID                        NOT NULL PRIMARY KEY,
-                        stremaid        UUID                        NOT NULL,
-                        version         BIGINT                      NOT NULL,
-                        type            TEXT                        NOT NULL,
-                        data            JSONB                       NOT NULL,
-                        created         timestamp with time zone    NOT NULL default(now()),
-                        FOREIGN KEY(streamid) REFERENCE streams(id),
-                        CONSTRAINT events_stream_and_veriosn UNIQUE(stremid, version)
+                        Id              UUID                        NOT NULL PRIMARY KEY,
+                        Data            JSONB                       NOT NULL,
+                        StreamFK        UUID                        NOT NULL,
+                        Type            TEXT                        NOT NULL,
+                        Version         BIGINT                      NOT NULL,                                             
+                        Created         timestamp with time zone    NOT NULL default(now()),
+                        FOREIGN KEY(StreamFK) REFERENCES Streams(Id),
+                        CONSTRAINT events_stream_and_version UNIQUE(StreamFK, Version)
                     )";
 
             dbConnection.Execute(createEventsTableSql);
@@ -173,11 +173,11 @@
         private void CreateStreamsTable()
         {
             const string createStreamsTableSql =
-                @"CREATE TABLE IF NOT EXISTS events
+                @"CREATE TABLE IF NOT EXISTS Streams
                     (
-                        id              UUID                        NOT NULL PRIMARY KEY,                                      
-                        type            TEXT                        NOT NULL,
-                        version         BIGINT                      NOT NULL
+                        Id              UUID                        NOT NULL PRIMARY KEY,                                      
+                        Type            TEXT                        NOT NULL,
+                        Version         BIGINT                      NOT NULL
                     )";
 
             dbConnection.Execute(createStreamsTableSql);
