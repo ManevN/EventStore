@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApp
 {
@@ -17,7 +18,7 @@ namespace WebApp
         [HttpGet]
         public void UpdateProductEndpoint()
         {
-            var restul = eventStore.Events.ToList();
+            var restul = eventStore.Events.TagWith("This is select query").ToList();
         }
     }
 }
