@@ -3,6 +3,7 @@ namespace WebApp
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.DependencyInjection;
     using Npgsql;
+    using Serilog;
 
     public class Program
     {
@@ -14,9 +15,14 @@ namespace WebApp
 
             builder.Services.AddControllers();
 
-            //builder.Services.AddScoped<NpgsqlConnection>(x => new NpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnectionSting")));
+            builder.Services.AddScoped<NpgsqlConnection>(x => new NpgsqlConnection(builder.Configuration.GetConnectionString("DefaultConnectionSting")));
+
+            builder.Host.UseSerilog((context, configuration) =>
+                configuration.ReadFrom.Configuration(context.Configuration));
 
             var app = builder.Build();
+
+            app.UseSerilogRequestLogging();
 
             app.MapControllerRoute(
                         name: "default",
